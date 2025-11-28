@@ -72,7 +72,7 @@ class RealtimeAudio(
     .build()
 
   private var recorderData: ShortArray? = null
-  private val recorder: AudioRecord?
+  private var recorder: AudioRecord?
   private val audioTrack: ChunkAudioTrack
   private val audioBackgroundTrack: LoopAudioTrack?
   private val audioManager: AudioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -87,6 +87,7 @@ class RealtimeAudio(
   private var state: RealtimeAudioState = RealtimeAudioState(
     isPlaying = false,
     isPaused = false,
+    isMicEnabled = arguments.recorderEnabled,
     duration = 0,
     durationTotal = 0,
     chunkCount = 0
@@ -168,6 +169,8 @@ class RealtimeAudio(
       "pause" -> pause()
       "resume" -> resume()
       "stop" -> stop()
+      "turnMicOn" -> turnMicOn()
+      "turnMicOff" -> turnMicOff()
 
       "stopBackground" -> stopBackground()
       "playBackground" -> {
@@ -467,5 +470,22 @@ class RealtimeAudio(
     stopAudio()
     stopRecording()
     isRunning = false
+  }
+
+  private fun turnMicOn() {
+    if (recorder == null) {
+      recorder = getRecorder()
+    }
+    state.isMicEnabled = true
+    notifyState()
+    startRecording()
+  }
+
+  private fun turnMicOff() {
+    stopRecording()
+    recorder?.release()
+    recorder = null
+    state.isMicEnabled = false
+    notifyState()
   }
 }

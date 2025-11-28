@@ -9,6 +9,7 @@ enum class RealtimeAudioRecorderPermission {
 data class RealtimeAudioState(
   var isPlaying: Boolean,
   var isPaused: Boolean,
+  var isMicEnabled: Boolean,
 
   var duration: Int,
   var durationTotal: Int,
@@ -19,6 +20,7 @@ data class RealtimeAudioState(
     return mapOf(
       "isPlaying" to isPlaying,
       "isPaused" to isPaused,
+      "isMicEnabled" to isMicEnabled,
       "duration" to duration,
       "durationTotal" to durationTotal,
       "chunkCount" to chunkCount

@@ -4,10 +4,11 @@ part 'realtime_audio_state.freezed.dart';
 part 'realtime_audio_state.g.dart';
 
 @freezed
-class RealtimeAudioState with _$RealtimeAudioState {
+abstract class RealtimeAudioState with _$RealtimeAudioState {
   const factory RealtimeAudioState({
     @Default(false) bool isPlaying,
     @Default(false) bool isPaused,
+    @Default(false) bool isMicEnabled,
     //
     @Default(0) int duration,
     @Default(0) int durationTotal,
@@ -15,5 +16,6 @@ class RealtimeAudioState with _$RealtimeAudioState {
     @Default(0) int chunkCount,
   }) = _RealtimeAudioState;
 
-  factory RealtimeAudioState.fromJson(Map<String, dynamic> json) => _$RealtimeAudioStateFromJson(json);
+  factory RealtimeAudioState.fromJson(Map<String, dynamic> json) =>
+      _$RealtimeAudioStateFromJson(json);
 }

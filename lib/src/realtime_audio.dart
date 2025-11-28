@@ -60,7 +60,9 @@ class RealtimeAudio {
 
   late final Future<void> isInitialized;
 
-  static const _staticChannel = MethodChannel('dev.volskaya.RealtimeAudio/plugin');
+  static const _staticChannel = MethodChannel(
+    'dev.volskaya.RealtimeAudio/plugin',
+  );
   static const _uuid = Uuid();
 
   static bool _isFirstCreate = true;
@@ -69,10 +71,14 @@ class RealtimeAudio {
   final List<RealtimeAudioQueueEntry> _queue = [];
   final Set<String> _queuedChunks = {};
 
-  final StreamController<double> _playerVolumeStreamController = StreamController<double>();
-  final StreamController<double> _recorderVolumeStreamController = StreamController<double>();
-  final StreamController<Uint8List> _recorderStreamController = StreamController<Uint8List>();
-  final StreamController<RealtimeAudioState> _stateStreamController = StreamController<RealtimeAudioState>();
+  final StreamController<double> _playerVolumeStreamController =
+      StreamController<double>();
+  final StreamController<double> _recorderVolumeStreamController =
+      StreamController<double>();
+  final StreamController<Uint8List> _recorderStreamController =
+      StreamController<Uint8List>();
+  final StreamController<RealtimeAudioState> _stateStreamController =
+      StreamController<RealtimeAudioState>();
 
   Stream<Uint8List> get recorderStream => _recorderStreamController.stream;
   Stream<RealtimeAudioState> get stateStream => _stateStreamController.stream;
@@ -81,7 +87,8 @@ class RealtimeAudio {
   Stream<double> get playerVolumeStream => _playerVolumeStreamController.stream;
 
   /// Recorder volume in dBFS, clamped from -96 to 0.
-  Stream<double> get recorderVolumeStream => _recorderVolumeStreamController.stream;
+  Stream<double> get recorderVolumeStream =>
+      _recorderVolumeStreamController.stream;
 
   String? _id;
   MethodChannel? _channel;
@@ -92,14 +99,18 @@ class RealtimeAudio {
 
   static Future<RealtimeAudioRecordPermission> getRecordPermission() async {
     final RealtimeAudioResponseGetRecordPermission response =
-        await const RealtimeAudioArguments.getRecordPermission().invoke(_staticChannel);
+        await const RealtimeAudioArguments.getRecordPermission().invoke(
+          _staticChannel,
+        );
 
     return response.permission;
   }
 
   static Future<RealtimeAudioRecordPermission> requestRecordPermission() async {
     final RealtimeAudioResponseRequestRecordPermission response =
-        await const RealtimeAudioArguments.requestRecordPermission().invoke(_staticChannel);
+        await const RealtimeAudioArguments.requestRecordPermission().invoke(
+          _staticChannel,
+        );
 
     return response.permission;
   }
@@ -148,7 +159,9 @@ class RealtimeAudio {
         handleChunkPlayed(call.arguments as String);
         break;
       default:
-        print("Unimplemented call: ${call.method} with args: ${call.arguments}."); // ignore: avoid_print
+        print(
+          "Unimplemented call: ${call.method} with args: ${call.arguments}.",
+        ); // ignore: avoid_print
     }
   }
 
@@ -177,13 +190,18 @@ class RealtimeAudio {
     if (!_queuedChunks.contains(id)) return;
 
     assert(
-      _queue.firstWhereOrNull((v) => v.mapOrNull(chunk: (v) => v.id == id) == true) != null,
+      _queue.firstWhereOrNull(
+            (v) => v.mapOrNull(chunk: (v) => v.id == id) == true,
+          ) !=
+          null,
       "Chunk $id not found in queue.",
     );
     assert(
       (() {
         final firstChunkId = _queue
-            .firstWhereOrNull((v) => v.mapOrNull(chunk: (v) => v.id == id) == true) //
+            .firstWhereOrNull(
+              (v) => v.mapOrNull(chunk: (v) => v.id == id) == true,
+            ) //
             ?.mapOrNull(chunk: (v) => v.id);
 
         return firstChunkId == id;
@@ -206,13 +224,18 @@ class RealtimeAudio {
     if (!_queuedChunks.contains(id)) return;
 
     assert(
-      _queue.firstWhereOrNull((v) => v.mapOrNull(chunk: (v) => v.id == id) == true) != null,
+      _queue.firstWhereOrNull(
+            (v) => v.mapOrNull(chunk: (v) => v.id == id) == true,
+          ) !=
+          null,
       "Chunk $id not found in queue.",
     );
     assert(
       (() {
         final firstChunkId = _queue
-            .firstWhereOrNull((v) => v.mapOrNull(chunk: (v) => v.id == id) == true) //
+            .firstWhereOrNull(
+              (v) => v.mapOrNull(chunk: (v) => v.id == id) == true,
+            ) //
             ?.mapOrNull(chunk: (v) => v.id);
 
         return firstChunkId == id;
@@ -227,8 +250,12 @@ class RealtimeAudio {
     while (_queue.isNotEmpty && !isChunkAfterTargetFound) {
       final entry = _queue.first;
 
-      isChunkAfterTargetFound = isTargetIdFound && entry.mapOrNull(chunk: (_) => true) == true;
-      isTargetIdFound = isTargetIdFound || isChunkAfterTargetFound || entry.mapOrNull(chunk: (v) => v.id == id) == true;
+      isChunkAfterTargetFound =
+          isTargetIdFound && entry.mapOrNull(chunk: (_) => true) == true;
+      isTargetIdFound =
+          isTargetIdFound ||
+          isChunkAfterTargetFound ||
+          entry.mapOrNull(chunk: (v) => v.id == id) == true;
 
       if (isChunkAfterTargetFound) break;
       handleQueueEntry(entry);
@@ -251,7 +278,10 @@ class RealtimeAudio {
       _queuedChunks.add(effectiveId);
 
       try {
-        await _channel!.invokeMethod('queue', {'id': effectiveId, 'data': data});
+        await _channel!.invokeMethod('queue', {
+          'id': effectiveId,
+          'data': data,
+        });
       } catch (_) {
         _queue.removeWhere((v) => v == queueEntry);
         rethrow;
@@ -260,9 +290,9 @@ class RealtimeAudio {
   }
 
   void queueCallback(void Function() callback) => _semaphore.withLock(() {
-        final queueEntry = RealtimeAudioQueueEntry.callback(callback: callback);
-        _queue.add(queueEntry);
-      });
+    final queueEntry = RealtimeAudioQueueEntry.callback(callback: callback);
+    _queue.add(queueEntry);
+  });
 
   Future<T?> _withInitAndLock<T>(Future<T?> Function() fn) async {
     await _semaphore.acquire();
@@ -279,23 +309,45 @@ class RealtimeAudio {
 
   //
 
-  Future<void> start() => _withInitAndLock(() async => _channel?.invokeMethod('start'));
-  Future<void> pause() => _withInitAndLock(() async => _channel?.invokeMethod('pause'));
-  Future<void> resume() => _withInitAndLock(() async => _channel?.invokeMethod('resume'));
-  Future<void> stop() async => _withInitAndLock(() async => _channel?.invokeMethod('stop'));
-  Future<RealtimeAudioInstanceResponseClearQueue?> clearQueue() => _withInitAndLock(
-      () async => _channel?.invokeMethodData('clearQueue', RealtimeAudioInstanceResponseClearQueue.fromJson));
+  Future<void> start() =>
+      _withInitAndLock(() async => _channel?.invokeMethod('start'));
+  Future<void> pause() =>
+      _withInitAndLock(() async => _channel?.invokeMethod('pause'));
+  Future<void> resume() =>
+      _withInitAndLock(() async => _channel?.invokeMethod('resume'));
+  Future<void> stop() async =>
+      _withInitAndLock(() async => _channel?.invokeMethod('stop'));
+  Future<RealtimeAudioInstanceResponseClearQueue?> clearQueue() =>
+      _withInitAndLock(
+        () async => _channel?.invokeMethodData(
+          'clearQueue',
+          RealtimeAudioInstanceResponseClearQueue.fromJson,
+        ),
+      );
+
+  Future<void> turnMicOn() =>
+      _withInitAndLock(() async => _channel?.invokeMethod('turnMicOn'));
+  Future<void> turnMicOff() =>
+      _withInitAndLock(() async => _channel?.invokeMethod('turnMicOff'));
 
   //
 
-  Future<void> stopBackground() => _withInitAndLock(() async => _channel?.invokeMethod('stopBackground'));
-  Future<void> playBackground(Uint8List data, {bool loop = false}) => _withInitAndLock(
-      () async => _channel?.invokeMethod('playBackground', {'id': _uuid.v4(), 'data': data, 'loop': loop}));
+  Future<void> stopBackground() =>
+      _withInitAndLock(() async => _channel?.invokeMethod('stopBackground'));
+  Future<void> playBackground(Uint8List data, {bool loop = false}) =>
+      _withInitAndLock(
+        () async => _channel?.invokeMethod('playBackground', {
+          'id': _uuid.v4(),
+          'data': data,
+          'loop': loop,
+        }),
+      );
 
   //
 
   Future<void> _initialize() => _semaphore.withLock(() async {
-        final RealtimeAudioResponseCreate response = await RealtimeAudioArguments.create(
+    final RealtimeAudioResponseCreate response =
+        await RealtimeAudioArguments.create(
           isFirstCreate: _isFirstCreate,
           voiceProcessing: voiceProcessing,
           recorderEnabled: recorderEnabled,
@@ -308,24 +360,25 @@ class RealtimeAudio {
           recorderChunkInterval: recorderChunkInterval,
         ).invoke(_staticChannel);
 
-        _isFirstCreate = false;
-        _id = response.id;
-        _channel = MethodChannel('dev.volskaya.RealtimeAudio/engines/$_id');
-        _channel!.setMethodCallHandler(_handleChannel);
-      });
+    _isFirstCreate = false;
+    _id = response.id;
+    _channel = MethodChannel('dev.volskaya.RealtimeAudio/engines/$_id');
+    _channel!.setMethodCallHandler(_handleChannel);
+  });
 
   Future<void> dispose() => _withInitAndLock(() async {
-        _channel?.setMethodCallHandler(null);
-        _isDisposed = true;
-        _recorderVolumeStreamController.close();
-        _recorderVolumeStreamController.sink.close();
-        _playerVolumeStreamController.close();
-        _playerVolumeStreamController.sink.close();
-        _recorderStreamController.close();
-        _recorderStreamController.sink.close();
-        _stateStreamController.close();
-        _stateStreamController.sink.close();
-        if (_id != null) await RealtimeAudioArguments.destroy(id: _id!).invoke(_staticChannel);
-        _id = null;
-      });
+    _channel?.setMethodCallHandler(null);
+    _isDisposed = true;
+    _recorderVolumeStreamController.close();
+    _recorderVolumeStreamController.sink.close();
+    _playerVolumeStreamController.close();
+    _playerVolumeStreamController.sink.close();
+    _recorderStreamController.close();
+    _recorderStreamController.sink.close();
+    _stateStreamController.close();
+    _stateStreamController.sink.close();
+    if (_id != null)
+      await RealtimeAudioArguments.destroy(id: _id!).invoke(_staticChannel);
+    _id = null;
+  });
 }

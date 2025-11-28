@@ -7,6 +7,7 @@ enum RealtimeAudioRecordPermission: String, Codable {
 struct RealtimeAudioState: Codable {
   var isPlaying: Bool
   var isPaused: Bool
+  var isMicEnabled: Bool
 
   var duration: Int
   var durationTotal: Int

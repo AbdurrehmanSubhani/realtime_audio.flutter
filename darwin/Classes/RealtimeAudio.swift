@@ -42,6 +42,7 @@ class RealtimeAudio: NSObject {
   private var state: RealtimeAudioState = .init(
     isPlaying: false,
     isPaused: false,
+    isMicEnabled: false,
     duration: 0,
     durationTotal: 0,
     chunkCount: 0
@@ -51,6 +52,7 @@ class RealtimeAudio: NSObject {
   private var shouldBePaused = false
   private var isDisposed = false
   private var isDeinitialized = false
+  private var isRecorderEnabled = false
 
   init(
     id: String,
@@ -60,6 +62,8 @@ class RealtimeAudio: NSObject {
     self.id = id
     self.arguments = arguments
     self.methodChannel = methodChannel
+    self.isRecorderEnabled = arguments.recorderEnabled
+    self.state.isMicEnabled = arguments.recorderEnabled
 
     self.recorderSampleRate = arguments.recorderSampleRate
     self.recorderFormat = getAudioFormat(.pcmFormatInt16, recorderSampleRate, 1)!
@@ -356,6 +360,12 @@ extension RealtimeAudio {
     case "stop":
       try stop()
       break
+    case "turnMicOn":
+      try turnMicOn()
+      break
+    case "turnMicOff":
+      try turnMicOff()
+      break
     //
     case "playBackground":
       guard let arguments = call.arguments as? [String: Any] else {
@@ -434,7 +444,7 @@ extension RealtimeAudio: ChunkAudioEventListener {
 // Recorder extension.
 extension RealtimeAudio {
   private func installTap() throws {
-    if !arguments.recorderEnabled { return }
+    if !isRecorderEnabled { return }
 
     audioEngine.inputNode.removeTap(onBus: recorderPreferredBus)
 
@@ -568,5 +578,19 @@ extension RealtimeAudio {
     try attachNodes()
     try installTap()
     try start()
+  }
+
+  private func turnMicOn() throws {
+    isRecorderEnabled = true
+    state.isMicEnabled = true
+    notifyState()
+    try installTap()
+  }
+
+  private func turnMicOff() throws {
+    isRecorderEnabled = false
+    state.isMicEnabled = false
+    notifyState()
+    audioEngine.inputNode.removeTap(onBus: recorderPreferredBus)
   }
 }
