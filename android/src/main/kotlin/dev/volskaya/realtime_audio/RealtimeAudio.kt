@@ -353,16 +353,19 @@ class RealtimeAudio(
   //
 
   private fun startRecording() {
-    if (recorder == null || recorder.recordingState == AudioRecord.RECORDSTATE_RECORDING) return
-    recorder.startRecording()
-    onPeriodicNotification(recorder)
+    recorder?.let {
+      if (it.recordingState == AudioRecord.RECORDSTATE_RECORDING) return
+      it.startRecording()
+      onPeriodicNotification(it)
+    }
   }
 
   private fun stopRecording() {
-    if (recorder == null || recorder.recordingState == AudioRecord.RECORDSTATE_STOPPED) return
-
-    recorder.stop()
-    notifyRecorderVolume()
+    recorder?.let {
+      if (it.recordingState == AudioRecord.RECORDSTATE_STOPPED) return
+      it.stop()
+      notifyRecorderVolume()
+    }
   }
 
   private fun handleRecorderData(buffer: ByteArray, dbfs: Double? = null) {
