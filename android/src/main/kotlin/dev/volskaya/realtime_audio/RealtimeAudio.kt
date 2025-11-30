@@ -17,6 +17,7 @@ import androidx.core.app.ActivityCompat
 import dev.volskaya.realtime_audio.utils.ChunkAudioTrack
 import dev.volskaya.realtime_audio.utils.ChunkAudioEventListener
 import dev.volskaya.realtime_audio.utils.LoopAudioTrack
+import android.media.audiofx.AcousticEchoCanceler
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.CoroutineScope
@@ -101,7 +102,8 @@ class RealtimeAudio(
     recorder = if (arguments.recorderEnabled) getRecorder() else null
     audioTrack = getAudioTrack(audioSessionId)
     audioBackgroundTrack = if (arguments.backgroundEnabled) getBackgroundTrack(audioSessionId) else null
-    audioManager.mode = AudioManager.MODE_NORMAL
+    audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+    audioManager.isSpeakerphoneOn = true
     methodChannel.setMethodCallHandler(this)
 
     audioBackgroundTrack?.setVolume(arguments.backgroundVolume.toFloat())
@@ -116,6 +118,7 @@ class RealtimeAudio(
     audioBackgroundTrack?.release()
     audioTrack.release()
     recorder?.release()
+    audioManager.mode = AudioManager.MODE_NORMAL
   }
 
 
@@ -245,9 +248,9 @@ class RealtimeAudio(
   private fun getAudioTrack(audioSessionId: Int? = null) =
     ChunkAudioTrack(
       AudioAttributes.Builder()
-        .setLegacyStreamType(AudioManager.STREAM_MUSIC)
-        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-        .setUsage(AudioAttributes.USAGE_MEDIA)
+        .setLegacyStreamType(AudioManager.STREAM_VOICE_CALL)
+        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+        .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
         .build(),
       playerOutputFormat,
       playerOutputFormat.getMinBufferSizeTrack(),
@@ -287,7 +290,7 @@ class RealtimeAudio(
     val bufferSize = minBufferSize * recorderFormat.getBitRatio()
 
     return AudioRecord(
-      MediaRecorder.AudioSource.MIC,
+      MediaRecorder.AudioSource.VOICE_COMMUNICATION,
       recorderFormat.sampleRate,
       recorderFormat.channelMask,
       recorderFormat.encoding,
@@ -296,6 +299,11 @@ class RealtimeAudio(
       recorderData = ShortArray(recorderChunkBufferSize)
       it.positionNotificationPeriod = recorderChunkBufferSize
       it.setRecordPositionUpdateListener(this)
+
+      if (AcousticEchoCanceler.isAvailable()) {
+        val echoCanceler = AcousticEchoCanceler.create(it.audioSessionId)
+        echoCanceler?.enabled = true
+      }
     }
   }
 
