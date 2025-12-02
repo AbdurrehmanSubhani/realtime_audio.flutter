@@ -325,6 +325,9 @@ class RealtimeAudio {
         ),
       );
 
+  Future<void> stopPlayback() =>
+      _withInitAndLock(() async => _channel?.invokeMethod('stopPlayback'));
+
   Future<void> turnMicOn() =>
       _withInitAndLock(() async => _channel?.invokeMethod('turnMicOn'));
   Future<void> turnMicOff() =>

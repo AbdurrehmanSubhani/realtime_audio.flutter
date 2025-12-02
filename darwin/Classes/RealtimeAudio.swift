@@ -347,6 +347,9 @@ extension RealtimeAudio {
       value = ["chunk": audioPlayerNode.getCurrentChunkProps()]
       stopAudio()
       break
+    case "stopPlayback":
+      stopAudio()
+      break
     //
     case "start":
       try start()

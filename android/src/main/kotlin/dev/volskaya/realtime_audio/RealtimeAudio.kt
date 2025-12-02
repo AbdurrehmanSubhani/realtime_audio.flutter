@@ -167,6 +167,7 @@ class RealtimeAudio(
         value = mapOf("chunk" to audioTrack.getCurrentChunkProps())
         stopAudio()
       }
+      "stopPlayback" -> stopAudio()
 
       "start" -> start()
       "pause" -> pause()
